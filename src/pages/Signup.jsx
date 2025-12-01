@@ -1,6 +1,8 @@
+// Front/src/pages/Signup.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import { signup } from '../api/auth';   // ✅ 여기 추가
 import './Signup.css';
 
 const Signup = () => {
@@ -14,7 +16,8 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(''); setError('');
+    setMessage('');
+    setError('');
 
     if (password !== confirmPassword) {
       setError('비밀번호가 일치하지 않습니다.');
@@ -22,23 +25,21 @@ const Signup = () => {
     }
 
     try {
-      const res = await fetch('/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ user_id: userId, password, nickname }), // ✅ snake_case
-      });
-      const data = await res.json().catch(() => ({}));
+      // ✅ axios + baseURL 사용
+      const data = await signup(userId, password, nickname);
 
-      if (res.ok) {
+      if (data?.ok) {
         setMessage(data?.msg || '회원가입이 완료되었습니다.');
-        setUserId(''); setNickname(''); setPassword(''); setConfirmPassword('');
+        setUserId('');
+        setNickname('');
+        setPassword('');
+        setConfirmPassword('');
         navigate('/login');
       } else {
         setError(data?.msg || '회원가입에 실패했습니다.');
       }
-    } catch {
-      setError('서버 오류가 발생했습니다.');
+    } catch (err) {
+      setError(err.message || '서버 오류가 발생했습니다.');
     }
   };
 

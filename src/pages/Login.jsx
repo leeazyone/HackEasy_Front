@@ -1,6 +1,8 @@
+// Front/src/pages/Login.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import { login } from '../api/auth';   // ✅ 여기 추가
 import './Login.css';
 
 const Login = () => {
@@ -16,22 +18,17 @@ const Login = () => {
     setError('');
 
     try {
-      const res = await fetch('/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // ✅ 세션 쿠키
-        body: JSON.stringify({ user_id: userId, password }), // ✅ snake_case
-      });
-      const data = await res.json().catch(() => ({}));
+      // ✅ axios + baseURL 사용
+      const data = await login(userId, password);
 
-      if (res.ok && data?.user) {
+      if (data?.user) {
         setMessage(`안녕하세요, ${data.user.nickname || data.user.user_id}님!`);
         navigate('/');
       } else {
         setError(data?.msg || '아이디 또는 비밀번호가 올바르지 않습니다.');
       }
-    } catch {
-      setError('서버 오류가 발생했습니다.');
+    } catch (err) {
+      setError(err.message || '서버 오류가 발생했습니다.');
     }
   };
 

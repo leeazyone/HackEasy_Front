@@ -4,7 +4,7 @@ import { api } from './client';
 export const signup = async (user_id, password, nickname) => {
   try {
     const res = await api.post('/auth/signup', { user_id, password, nickname });
-    return res.data; // { ok, msg, ... }
+    return res.data;
   } catch (err) {
     const msg = err?.response?.data?.msg || '회원가입 요청 실패';
     throw new Error(msg);
@@ -14,7 +14,7 @@ export const signup = async (user_id, password, nickname) => {
 export const login = async (user_id, password) => {
   try {
     const res = await api.post('/auth/login', { user_id, password });
-    return res.data; // { ok, user, msg }
+    return res.data;
   } catch (err) {
     const msg = err?.response?.data?.msg || '로그인 요청 실패';
     throw new Error(msg);
