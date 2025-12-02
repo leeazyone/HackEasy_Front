@@ -1,8 +1,7 @@
 // Front/src/pages/Signup.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import { signup } from '../api/auth';   // ✅ 여기 추가
+import { signup } from '../api/auth';
 import './Signup.css';
 
 const Signup = () => {
@@ -25,7 +24,6 @@ const Signup = () => {
     }
 
     try {
-      // ✅ axios + baseURL 사용
       const data = await signup(userId, password, nickname);
 
       if (data?.ok) {
@@ -39,13 +37,13 @@ const Signup = () => {
         setError(data?.msg || '회원가입에 실패했습니다.');
       }
     } catch (err) {
-      setError(err.message || '서버 오류가 발생했습니다.');
+      console.error(err);
+      setError(err.response?.data?.msg || '서버 오류가 발생했습니다.');
     }
   };
 
   return (
     <div className="signup-page">
-      <Header />
       <main className="signup-container">
         <div className="signup-card">
           <h1 className="signup-title">회원가입</h1>
@@ -99,7 +97,9 @@ const Signup = () => {
               />
             </div>
 
-            <button type="submit" className="form-button">계정 생성</button>
+            <button type="submit" className="form-button">
+              계정 생성
+            </button>
           </form>
 
           {message && <div className="message">{message}</div>}
