@@ -1,6 +1,6 @@
 /* src/pages/MyPage.css */
 
-.mypage {
+.mypage-wrapper {
   min-height: 100vh;
   background-color: #0a0a0a;
   color: #ffffff;
@@ -150,7 +150,7 @@
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-  .mypage {
+.mypage-wrapper {
     padding: 60px 16px 32px;
   }
 

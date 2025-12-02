@@ -1,11 +1,11 @@
 // src/pages/MyPage.jsx
-//import './MyPage.css';
+import './MyPage.css';
 
 const MyPage = ({ user }) => {
   // 안전장치
   if (!user) {
     return (
-      <div className="mypage">
+      <div className="mypage-wrapper">
         <div className="mypage-container">
           <p className="no-user">로그인이 필요합니다.</p>
         </div>
@@ -14,7 +14,7 @@ const MyPage = ({ user }) => {
   }
 
   return (
-    <div className="mypage">
+    <div className="mypage-wrapper">
       <div className="mypage-container">
         <h1 className="mypage-title">마이페이지</h1>
         
