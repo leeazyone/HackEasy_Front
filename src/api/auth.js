@@ -30,3 +30,13 @@ export const logout = async () => {
     throw new Error(msg);
   }
 };
+
+export const getMe = async () => {
+  try {
+    const res = await api.get('/auth/me');   // 백엔드에서 만든 /auth/me
+    return res.data;                         // { user: {...} } 구조라고 가정
+  } catch (err) {
+    const msg = err?.response?.data?.msg || '내 정보 조회 요청 실패';
+    throw new Error(msg);
+  }
+};
