@@ -30,3 +30,13 @@ export const logout = async () => {
     throw new Error(msg);
   }
 };
+
+export const getMe = async () => {
+  try {
+    const res = await api.get('/auth/me');
+    return res.data;                // { user: {...} }
+  } catch (err) {
+    console.error('getMe 실패:', err?.response || err);
+    return null;                    // 실패해도 에러 던지지 않음
+  }
+};
