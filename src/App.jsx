@@ -8,7 +8,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Problems from './pages/Problems';
 import ProblemDetail from './pages/ProblemDetail';
-import MyPage from './pages/MyPage'; // 👈 새로 만들 페이지
+//import MyPage from './pages/MyPage'; // 👈 새로 만들 페이지
 
 import { getMe, logout } from './api/auth';
 
@@ -69,8 +69,8 @@ function App() {
         <Route
           path="/mypage"
           element={
-            <PrivateRoute user={user} loading={loadingUser}>
-              <MyPage />
+            <PrivateRoute user={user}>
+              <MyPage user={user} />
             </PrivateRoute>
           }
         />

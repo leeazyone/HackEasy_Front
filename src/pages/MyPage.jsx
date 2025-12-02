@@ -1,27 +1,9 @@
-// src/pages/MyPage.jsx
-import { useEffect, useState } from 'react';
-import { getMe } from '../api/auth';
-import './MyPage.css'; // 없으면 나중에 만들면 됨
+// Front/src/pages/MyPage.jsx
+import './MyPage.css';
 
-const MyPage = () => {
-  const [user, setUser] = useState(null);
-  const [stats, setStats] = useState(null);
-
-  useEffect(() => {
-    const fetchMe = async () => {
-      try {
-        const data = await getMe();
-        setUser(data.user);
-        setStats(data.stats || null);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchMe();
-  }, []);
-
-  if (!user) return null; // 로딩 화면 만들고 싶으면 여기서 처리
+const MyPage = ({ user }) => {
+  // 혹시 모를 안전장치
+  if (!user) return null;
 
   return (
     <div className="mypage">
@@ -33,13 +15,7 @@ const MyPage = () => {
         <p>닉네임: {user.nickname}</p>
       </section>
 
-      {stats && (
-        <section className="mypage-section">
-          <h2>풀이 현황</h2>
-          <p>푼 문제 수: {stats.solvedCount}개</p>
-          <p>총 점수: {stats.totalScore}점</p>
-        </section>
-      )}
+      {/* 나중에 푼 문제/점수, 뱃지 이런 거 여기 섹션만 추가하면 됨 */}
     </div>
   );
 };
