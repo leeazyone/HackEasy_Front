@@ -1,5 +1,5 @@
 // src/pages/MyPage.jsx
-import './MyPage.css';
+//import './MyPage.css';
 
 const MyPage = ({ user }) => {
   // 안전장치
