@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import Header from '../components/Header';
 import { fetchProblemById, submitFlag } from '../api/mock';
 import './ProblemDetail.css';
 
@@ -40,7 +39,6 @@ const ProblemDetail = () => {
   if (loading) {
     return (
       <div className="problem-detail-page">
-        <Header />
         <div className="problem-detail-container">
           <p className="loading-text">Loading problem...</p>
         </div>
@@ -51,7 +49,6 @@ const ProblemDetail = () => {
   if (!problem) {
     return (
       <div className="problem-detail-page">
-        <Header />
         <div className="problem-detail-container">
           <p className="loading-text">Problem not found.</p>
         </div>
@@ -61,8 +58,6 @@ const ProblemDetail = () => {
 
   return (
     <div className="problem-detail-page">
-      <Header />
-      
       <main className="problem-detail-container">
         <div className="problem-detail-header">
           <div className="problem-title-row">
