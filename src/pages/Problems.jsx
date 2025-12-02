@@ -35,7 +35,6 @@ const Problems = () => {
 
   return (
     <div className="problems-page">
-      <Header />
       
       <main className="problems-container">
         <h1 className="problems-title">CTF 챌린지</h1>
