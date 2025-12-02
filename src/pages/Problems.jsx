@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/Header';
 import { fetchProblems } from '../api/mock';
 import './Problems.css';
 
@@ -27,7 +26,6 @@ const Problems = () => {
   if (loading) {
     return (
       <div className="problems-page">
-        <Header />
         <div className="problems-container">
           <p className="loading-text">Loading problems...</p>
         </div>
