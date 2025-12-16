@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { fetchChallenges, submitChallengeFlag } from '../api/challenges';
 import './ProblemDetail.css';
 
-// description 파싱
+// description 파싱(예전 포맷 호환용)
 const parseSections = (description = '') => {
   const text = String(description || '');
 
@@ -30,11 +30,14 @@ const ProblemDetail = () => {
     (async () => {
       try {
         setLoading(true);
+        setResult('');
+
         const list = await fetchChallenges();
         const found = list.find((c) => String(c.id) === String(id));
         setProblem(found || null);
-      } catch {
+      } catch (e) {
         setProblem(null);
+        setResult(e?.response?.data?.message || '문제 정보를 불러오지 못했어요.');
       } finally {
         setLoading(false);
       }
@@ -43,55 +46,121 @@ const ProblemDetail = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
+      setResult('');
       const res = await submitChallengeFlag(id, flag);
-      setResult(res?.message || (res?.success ? 'Correct!' : 'Wrong!'));
-      if (res?.success) setFlag('');
+
+      const message =
+        res?.message ??
+        (res?.ok ? 'Correct!' : 'Wrong!');
+
+      setResult(message);
+
+      if (res?.ok) setFlag('');
     } catch (e) {
-      setResult(e?.response?.data?.message || '제출 실패');
+      const status = e?.response?.status;
+      if (status === 401 || status === 403) {
+        setResult('로그인이 필요합니다. 로그인 후 다시 제출해 주세요.');
+        return;
+      }
+      setResult(e?.response?.data?.message || '제출 중 오류가 발생했어요.');
     }
   };
 
-  if (loading) return <p className="loading-text">Loading...</p>;
-  if (!problem) return <p className="loading-text">Problem not found.</p>;
+  const getDifficultyBadgeClass = (difficulty) => {
+    const d = String(difficulty || '').toLowerCase();
+    if (d === 'easy') return 'badge-easy';
+    if (d === 'medium') return 'badge-medium';
+    if (d === 'hard') return 'badge-hard';
+    return '';
+  };
 
-  const { story, objective, hint } = parseSections(problem.description);
+  const isCorrect =
+    String(result).toLowerCase().includes('correct') ||
+    String(result).toLowerCase().includes('success');
+
+  if (loading) {
+    return (
+      <div className="problem-detail-page">
+        <div className="problem-detail-container">
+          <p className="loading-text">Loading problem...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!problem) {
+    return (
+      <div className="problem-detail-page">
+        <div className="problem-detail-container">
+          <p className="loading-text">Problem not found.</p>
+          {result && <p className="loading-text">{result}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ 백엔드 새 포맷(story/objective/hint) 우선 사용
+  // ✅ 없으면 예전 포맷(description) 파싱해서 호환
+  const parsed = parseSections(problem.description);
+  const story = (problem.story ?? parsed.story ?? '').trim();
+  const objective = (problem.objective ?? parsed.objective ?? '').trim();
+  const hint = (problem.hint ?? parsed.hint ?? '').trim();
+
+  // ✅ targetUrl이 백엔드에 없으면 프론트에서 fallback으로 생성
+  const targetUrl =
+    problem.targetUrl ||
+    (problem.id ? `https://targets.hackeasy.store/${problem.id}` : '');
 
   return (
     <div className="problem-detail-page">
       <main className="problem-detail-container">
         <div className="problem-detail-header">
-          <h1 className="problem-detail-title">{problem.title}</h1>
-          <span className="difficulty-badge badge-easy">
-            {problem.difficulty}
-          </span>
+          <div className="problem-title-row">
+            <h1 className="problem-detail-title">{problem.title}</h1>
+            {problem.difficulty && (
+              <span
+                className={`difficulty-badge ${getDifficultyBadgeClass(
+                  problem.difficulty
+                )}`}
+              >
+                {problem.difficulty}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Story */}
         <div className="problem-section">
           <h2 className="section-title">Story</h2>
-          <p className="problem-description-text">{story}</p>
+          <p className="problem-description-text">
+            {story || 'No story.'}
+          </p>
         </div>
 
         {/* Objective */}
         <div className="problem-section">
           <h2 className="section-title">Objective</h2>
-          <p className="problem-description-text">{objective}</p>
+          <p className="problem-description-text">
+            {objective || 'No objective.'}
+          </p>
         </div>
 
         {/* Hint */}
         <div className="problem-section">
           <h2 className="section-title">Hint</h2>
-          <p className="problem-description-text">{hint}</p>
+          <p className="problem-description-text">
+            {hint || 'No hint.'}
+          </p>
         </div>
 
-        {/* ✅ 타겟 링크 (이게 지금까지 없던 부분) */}
-        {problem.targetUrl && (
+        {/* ✅ 외부 문제 사이트 링크 */}
+        {targetUrl && (
           <div className="problem-section">
             <h2 className="section-title">문제 페이지</h2>
-
             <a
-              href={problem.targetUrl}
+              href={targetUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="problem-button"
@@ -101,7 +170,7 @@ const ProblemDetail = () => {
           </div>
         )}
 
-        {/* 플래그 제출 */}
+        {/* Flag submit */}
         <div className="problem-section">
           <h2 className="section-title">플래그 제출</h2>
 
@@ -113,12 +182,21 @@ const ProblemDetail = () => {
               placeholder="HE{enter_your_flag_here}"
               className="flag-input"
             />
+
             <button type="submit" className="submit-button">
               제출
             </button>
           </form>
 
-          {result && <p className="result-message">{result}</p>}
+          {result && (
+            <div
+              className={`result-message ${
+                isCorrect ? 'result-success' : 'result-error'
+              }`}
+            >
+              {result}
+            </div>
+          )}
         </div>
       </main>
     </div>
