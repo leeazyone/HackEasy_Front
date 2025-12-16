@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchChallenges } from '../api/challenges';
 import './Problems.css';
 
-// ✅ description에서 Story만 뽑기
+// description에서 Story만 뽑기
 const extractStory = (description = '') => {
   const text = String(description || '');
   const match = text.match(/\[Story\]([\s\S]*?)(\[Objective\]|\[Hint\]|$)/);
@@ -11,8 +11,8 @@ const extractStory = (description = '') => {
   return '';
 };
 
-// ✅ 너무 길면 잘라서 “목록용”으로 보기 좋게
-const clampText = (text = '', max = 160) => {
+// 너무 길면 잘라서 목록용으로
+const clampText = (text = '', max = 180) => {
   const t = String(text || '').replace(/\s+/g, ' ').trim();
   if (t.length <= max) return t;
   return t.slice(0, max).trim() + '…';
@@ -79,8 +79,10 @@ const Problems = () => {
         <div className="problems-grid">
           {problems.map((p) => {
             const storyOnly = extractStory(p.description);
+
             return (
               <div key={p.id} className="problem-card">
+                {/* ✅ 제목 + 난이도는 같은 줄(우측 배지) */}
                 <div className="problem-card-header">
                   <h2 className="problem-title">{p.title}</h2>
                   {p.difficulty && (
@@ -90,13 +92,14 @@ const Problems = () => {
                   )}
                 </div>
 
-                {/* ✅ 목록에서는 Story만 */}
+                {/* ✅ 목록은 Story만 */}
                 {storyOnly && (
                   <p className="problem-description">
-                    {clampText(storyOnly, 220)}
+                    {clampText(storyOnly, 240)}
                   </p>
                 )}
 
+                {/* ✅ 버튼은 카드 하단 */}
                 <div className="problem-card-actions">
                   <button className="start-button" onClick={() => handleGo(p.id)}>
                     문제 풀기
@@ -107,7 +110,9 @@ const Problems = () => {
           })}
         </div>
 
-        {problems.length === 0 && <p className="loading-text">등록된 문제가 없어요.</p>}
+        {problems.length === 0 && (
+          <p className="loading-text">등록된 문제가 없어요.</p>
+        )}
       </div>
     </div>
   );

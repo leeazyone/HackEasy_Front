@@ -97,3 +97,16 @@
 .loading-text {
   color: #9ca3af;
 }
+
+.problem-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.problem-card-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-start;
+}
