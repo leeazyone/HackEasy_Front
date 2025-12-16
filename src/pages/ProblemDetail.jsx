@@ -3,33 +3,6 @@ import { useParams } from 'react-router-dom';
 import { fetchChallenges, submitChallengeFlag } from '../api/challenges';
 import './ProblemDetail.css';
 
-// ✅ description을 섹션별로 파싱: Story / Objective / Hint
-const parseSections = (description = '') => {
-  const text = String(description || '');
-
-  const get = (label) => {
-    const re = new RegExp(`\\[${label}\\]([\\s\\S]*?)(\\[Story\\]|\\[Objective\\]|\\[Hint\\]|$)`, 'g');
-    // 위 regex는 다음 섹션 시작까지 잡는 용도인데, 현재 label 기준으로는
-    // 매칭이 꼬일 수 있어, label별로 확실히 분리하는 방식으로 처리
-    return null;
-  };
-
-  const storyMatch = text.match(/\[Story\]([\s\S]*?)(\[Objective\]|\[Hint\]|$)/);
-  const objMatch = text.match(/\[Objective\]([\s\S]*?)(\[Hint\]|$)/);
-  const hintMatch = text.match(/\[Hint\]([\s\S]*?)($)/);
-
-  const story = storyMatch?.[1]?.trim() || '';
-  const objective = objMatch?.[1]?.trim() || '';
-  const hint = hintMatch?.[1]?.trim() || '';
-
-  // 혹시 포맷이 달라서 다 비면, 그냥 전체를 story에 넣어 깨지지 않게
-  if (!story && !objective && !hint) {
-    return { story: text.trim(), objective: '', hint: '' };
-  }
-
-  return { story, objective, hint };
-};
-
 const ProblemDetail = () => {
   const { id } = useParams();
 
@@ -63,10 +36,13 @@ const ProblemDetail = () => {
       setResult('');
       const res = await submitChallengeFlag(id, flag);
 
-      const message = res?.message ?? (res?.success ? 'Correct!' : 'Wrong!');
+      const message =
+        res?.message ??
+        (res?.ok ? 'Correct!' : 'Wrong!');
+
       setResult(message);
 
-      if (res?.success) setFlag('');
+      if (res?.ok) setFlag('');
     } catch (e) {
       const status = e?.response?.status;
       if (status === 401 || status === 403) {
@@ -110,8 +86,6 @@ const ProblemDetail = () => {
     );
   }
 
-  const { story, objective, hint } = parseSections(problem.description);
-
   return (
     <div className="problem-detail-page">
       <main className="problem-detail-container">
@@ -119,29 +93,42 @@ const ProblemDetail = () => {
           <div className="problem-title-row">
             <h1 className="problem-detail-title">{problem.title}</h1>
             {problem.difficulty && (
-              <span className={`difficulty-badge ${getDifficultyBadgeClass(problem.difficulty)}`}>
+              <span
+                className={`difficulty-badge ${getDifficultyBadgeClass(
+                  problem.difficulty
+                )}`}
+              >
                 {problem.difficulty}
               </span>
             )}
           </div>
         </div>
 
-        {/* ✅ 상세에서는 전체 섹션 다 노출 */}
+        {/* Story */}
         <div className="problem-section">
           <h2 className="section-title">Story</h2>
-          <p className="problem-description-text">{story || 'No story.'}</p>
+          <p className="problem-description-text">
+            {problem.story || 'No story.'}
+          </p>
         </div>
 
+        {/* Objective */}
         <div className="problem-section">
           <h2 className="section-title">Objective</h2>
-          <p className="problem-description-text">{objective || 'No objective.'}</p>
+          <p className="problem-description-text">
+            {problem.objective || 'No objective.'}
+          </p>
         </div>
 
+        {/* Hint */}
         <div className="problem-section">
           <h2 className="section-title">Hint</h2>
-          <p className="problem-description-text">{hint || 'No hint.'}</p>
+          <p className="problem-description-text">
+            {problem.hint || 'No hint.'}
+          </p>
         </div>
 
+        {/* Flag submit */}
         <div className="problem-section">
           <h2 className="section-title">플래그 제출</h2>
 
@@ -160,7 +147,11 @@ const ProblemDetail = () => {
           </form>
 
           {result && (
-            <div className={`result-message ${isCorrect ? 'result-success' : 'result-error'}`}>
+            <div
+              className={`result-message ${
+                isCorrect ? 'result-success' : 'result-error'
+              }`}
+            >
               {result}
             </div>
           )}
