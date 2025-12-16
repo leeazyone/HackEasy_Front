@@ -3,6 +3,21 @@ import { useParams } from 'react-router-dom';
 import { fetchChallenges, submitChallengeFlag } from '../api/challenges';
 import './ProblemDetail.css';
 
+// description 파싱
+const parseSections = (description = '') => {
+  const text = String(description || '');
+
+  const storyMatch = text.match(/\[Story\]([\s\S]*?)(\[Objective\]|\[Hint\]|$)/);
+  const objMatch = text.match(/\[Objective\]([\s\S]*?)(\[Hint\]|$)/);
+  const hintMatch = text.match(/\[Hint\]([\s\S]*?)($)/);
+
+  return {
+    story: storyMatch?.[1]?.trim() || '',
+    objective: objMatch?.[1]?.trim() || '',
+    hint: hintMatch?.[1]?.trim() || '',
+  };
+};
+
 const ProblemDetail = () => {
   const { id } = useParams();
 
@@ -15,14 +30,11 @@ const ProblemDetail = () => {
     (async () => {
       try {
         setLoading(true);
-        setResult('');
-
         const list = await fetchChallenges();
-        const found = (list || []).find((c) => String(c.id) === String(id));
+        const found = list.find((c) => String(c.id) === String(id));
         setProblem(found || null);
-      } catch (e) {
+      } catch {
         setProblem(null);
-        setResult(e?.response?.data?.message || '문제 정보를 불러오지 못했어요.');
       } finally {
         setLoading(false);
       }
@@ -31,105 +43,65 @@ const ProblemDetail = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      setResult('');
       const res = await submitChallengeFlag(id, flag);
-
-      // 백엔드 응답이 { ok, message } 형태일 수도 / { success, message } 형태일 수도 있어서 둘 다 대응
-      const ok = !!(res?.ok ?? res?.success);
-      const message = res?.message ?? (ok ? 'Correct!' : 'Wrong!');
-
-      setResult(message);
-
-      if (ok) setFlag('');
+      setResult(res?.message || (res?.success ? 'Correct!' : 'Wrong!'));
+      if (res?.success) setFlag('');
     } catch (e) {
-      const status = e?.response?.status;
-      if (status === 401 || status === 403) {
-        setResult('로그인이 필요합니다. 로그인 후 다시 제출해 주세요.');
-        return;
-      }
-      setResult(e?.response?.data?.message || '제출 중 오류가 발생했어요.');
+      setResult(e?.response?.data?.message || '제출 실패');
     }
   };
 
-  const getDifficultyBadgeClass = (difficulty) => {
-    const d = String(difficulty || '').toLowerCase();
-    if (d === 'easy') return 'badge-easy';
-    if (d === 'medium') return 'badge-medium';
-    if (d === 'hard') return 'badge-hard';
-    return '';
-  };
+  if (loading) return <p className="loading-text">Loading...</p>;
+  if (!problem) return <p className="loading-text">Problem not found.</p>;
 
-  const isCorrect =
-    String(result).toLowerCase().includes('correct') ||
-    String(result).toLowerCase().includes('success');
-
-  if (loading) {
-    return (
-      <div className="problem-detail-page">
-        <div className="problem-detail-container">
-          <p className="loading-text">Loading problem...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!problem) {
-    return (
-      <div className="problem-detail-page">
-        <div className="problem-detail-container">
-          <p className="loading-text">Problem not found.</p>
-          {result && <p className="loading-text">{result}</p>}
-        </div>
-      </div>
-    );
-  }
+  const { story, objective, hint } = parseSections(problem.description);
 
   return (
     <div className="problem-detail-page">
       <main className="problem-detail-container">
         <div className="problem-detail-header">
-          <div className="problem-title-row">
-            <h1 className="problem-detail-title">{problem.title}</h1>
-            {problem.difficulty && (
-              <span className={`difficulty-badge ${getDifficultyBadgeClass(problem.difficulty)}`}>
-                {problem.difficulty}
-              </span>
-            )}
-          </div>
+          <h1 className="problem-detail-title">{problem.title}</h1>
+          <span className="difficulty-badge badge-easy">
+            {problem.difficulty}
+          </span>
         </div>
 
-        {/* ✅ 타겟 링크 버튼 (기존 버튼 느낌 그대로: problem-button 클래스 사용) */}
+        {/* Story */}
+        <div className="problem-section">
+          <h2 className="section-title">Story</h2>
+          <p className="problem-description-text">{story}</p>
+        </div>
+
+        {/* Objective */}
+        <div className="problem-section">
+          <h2 className="section-title">Objective</h2>
+          <p className="problem-description-text">{objective}</p>
+        </div>
+
+        {/* Hint */}
+        <div className="problem-section">
+          <h2 className="section-title">Hint</h2>
+          <p className="problem-description-text">{hint}</p>
+        </div>
+
+        {/* ✅ 타겟 링크 (이게 지금까지 없던 부분) */}
         {problem.targetUrl && (
           <div className="problem-section">
-            <h2 className="section-title">Target</h2>
+            <h2 className="section-title">문제 페이지</h2>
+
             <a
               href={problem.targetUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="problem-button"
             >
-              문제 페이지 열기
+              문제 풀러 가기
             </a>
           </div>
         )}
 
-        <div className="problem-section">
-          <h2 className="section-title">Story</h2>
-          <p className="problem-description-text">{problem.story || 'No story.'}</p>
-        </div>
-
-        <div className="problem-section">
-          <h2 className="section-title">Objective</h2>
-          <p className="problem-description-text">{problem.objective || 'No objective.'}</p>
-        </div>
-
-        <div className="problem-section">
-          <h2 className="section-title">Hint</h2>
-          <p className="problem-description-text">{problem.hint || 'No hint.'}</p>
-        </div>
-
+        {/* 플래그 제출 */}
         <div className="problem-section">
           <h2 className="section-title">플래그 제출</h2>
 
@@ -141,17 +113,12 @@ const ProblemDetail = () => {
               placeholder="HE{enter_your_flag_here}"
               className="flag-input"
             />
-
             <button type="submit" className="submit-button">
               제출
             </button>
           </form>
 
-          {result && (
-            <div className={`result-message ${isCorrect ? 'result-success' : 'result-error'}`}>
-              {result}
-            </div>
-          )}
+          {result && <p className="result-message">{result}</p>}
         </div>
       </main>
     </div>
