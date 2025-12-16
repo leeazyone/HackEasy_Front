@@ -18,7 +18,7 @@ const ProblemDetail = () => {
         setResult('');
 
         const list = await fetchChallenges();
-        const found = list.find((c) => String(c.id) === String(id));
+        const found = (list || []).find((c) => String(c.id) === String(id));
         setProblem(found || null);
       } catch (e) {
         setProblem(null);
@@ -36,13 +36,13 @@ const ProblemDetail = () => {
       setResult('');
       const res = await submitChallengeFlag(id, flag);
 
-      const message =
-        res?.message ??
-        (res?.ok ? 'Correct!' : 'Wrong!');
+      // 백엔드 응답이 { ok, message } 형태일 수도 / { success, message } 형태일 수도 있어서 둘 다 대응
+      const ok = !!(res?.ok ?? res?.success);
+      const message = res?.message ?? (ok ? 'Correct!' : 'Wrong!');
 
       setResult(message);
 
-      if (res?.ok) setFlag('');
+      if (ok) setFlag('');
     } catch (e) {
       const status = e?.response?.status;
       if (status === 401 || status === 403) {
@@ -93,42 +93,43 @@ const ProblemDetail = () => {
           <div className="problem-title-row">
             <h1 className="problem-detail-title">{problem.title}</h1>
             {problem.difficulty && (
-              <span
-                className={`difficulty-badge ${getDifficultyBadgeClass(
-                  problem.difficulty
-                )}`}
-              >
+              <span className={`difficulty-badge ${getDifficultyBadgeClass(problem.difficulty)}`}>
                 {problem.difficulty}
               </span>
             )}
           </div>
         </div>
 
-        {/* Story */}
+        {/* ✅ 타겟 링크 버튼 (기존 버튼 느낌 그대로: problem-button 클래스 사용) */}
+        {problem.targetUrl && (
+          <div className="problem-section">
+            <h2 className="section-title">Target</h2>
+            <a
+              href={problem.targetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="problem-button"
+            >
+              문제 페이지 열기
+            </a>
+          </div>
+        )}
+
         <div className="problem-section">
           <h2 className="section-title">Story</h2>
-          <p className="problem-description-text">
-            {problem.story || 'No story.'}
-          </p>
+          <p className="problem-description-text">{problem.story || 'No story.'}</p>
         </div>
 
-        {/* Objective */}
         <div className="problem-section">
           <h2 className="section-title">Objective</h2>
-          <p className="problem-description-text">
-            {problem.objective || 'No objective.'}
-          </p>
+          <p className="problem-description-text">{problem.objective || 'No objective.'}</p>
         </div>
 
-        {/* Hint */}
         <div className="problem-section">
           <h2 className="section-title">Hint</h2>
-          <p className="problem-description-text">
-            {problem.hint || 'No hint.'}
-          </p>
+          <p className="problem-description-text">{problem.hint || 'No hint.'}</p>
         </div>
 
-        {/* Flag submit */}
         <div className="problem-section">
           <h2 className="section-title">플래그 제출</h2>
 
@@ -147,11 +148,7 @@ const ProblemDetail = () => {
           </form>
 
           {result && (
-            <div
-              className={`result-message ${
-                isCorrect ? 'result-success' : 'result-error'
-              }`}
-            >
+            <div className={`result-message ${isCorrect ? 'result-success' : 'result-error'}`}>
               {result}
             </div>
           )}
