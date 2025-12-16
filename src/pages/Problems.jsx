@@ -1,38 +1,58 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchChallenges } from '../api/challenges';
 import './Problems.css';
 
 const Problems = () => {
+  const navigate = useNavigate();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    fetchChallenges()
-      .then((data) => {
-        setProblems(data);
-      })
-      .catch((err) => {
-        console.error(err);
-        setProblems([]);
-      })
-      .finally(() => setLoading(false));
+    (async () => {
+      try {
+        setLoading(true);
+        setErrorMsg('');
+        const list = await fetchChallenges();
+        setProblems(list || []);
+      } catch (e) {
+        setErrorMsg(e?.response?.data?.message || '문제 목록을 불러오지 못했어요.');
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const getDifficultyClass = (difficulty) => {
-    switch ((difficulty || '').toLowerCase()) {
-      case 'easy': return 'difficulty-easy';
-      case 'medium': return 'difficulty-medium';
-      case 'hard': return 'difficulty-hard';
-      default: return '';
-    }
+  const getDifficultyBadgeClass = (difficulty) => {
+    const d = String(difficulty || '').toLowerCase();
+    if (d === 'easy') return 'badge-easy';
+    if (d === 'medium') return 'badge-medium';
+    if (d === 'hard') return 'badge-hard';
+    return '';
+  };
+
+  const handleGo = (id) => {
+    navigate(`/problems/${id}`);
   };
 
   if (loading) {
     return (
       <div className="problems-page">
         <div className="problems-container">
-          <p className="loading-text">Loading problems...</p>
+          <h1 className="page-title">CTF 챌린지</h1>
+          <p className="loading-text">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="problems-page">
+        <div className="problems-container">
+          <h1 className="page-title">CTF 챌린지</h1>
+          <p className="loading-text">{errorMsg}</p>
         </div>
       </div>
     );
@@ -40,31 +60,36 @@ const Problems = () => {
 
   return (
     <div className="problems-page">
-      <main className="problems-container">
-        <h1 className="problems-title">CTF 챌린지</h1>
+      <div className="problems-container">
+        <h1 className="page-title">CTF 챌린지</h1>
 
         <div className="problems-grid">
-          {problems.map((problem) => (
-            <div key={problem.id} className="problem-card">
-              <div className="problem-header">
-                <h3 className="problem-title">{problem.title}</h3>
-                <span className={`problem-difficulty ${getDifficultyClass(problem.difficulty)}`}>
-                  {problem.difficulty}
-                </span>
+          {problems.map((p) => (
+            <div key={p.id} className="problem-card">
+              <div className="problem-card-header">
+                <h2 className="problem-title">{p.title}</h2>
+                {p.difficulty && (
+                  <span className={`difficulty-badge ${getDifficultyBadgeClass(p.difficulty)}`}>
+                    {p.difficulty}
+                  </span>
+                )}
               </div>
 
-              <p className="problem-description">{problem.description}</p>
+              {/* ✅ 여기서 description/story는 아예 안 보여줌 */}
 
-              <Link
-                to={`/problems/${problem.id}`}   // ✅ c1 같은 문자열 id로 이동
-                className="problem-button"
-              >
-                문제 풀기
-              </Link>
+              <div className="problem-card-actions">
+                <button className="start-button" onClick={() => handleGo(p.id)}>
+                  문제 풀기
+                </button>
+              </div>
             </div>
           ))}
         </div>
-      </main>
+
+        {problems.length === 0 && (
+          <p className="loading-text">등록된 문제가 없어요.</p>
+        )}
+      </div>
     </div>
   );
 };

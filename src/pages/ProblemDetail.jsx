@@ -3,6 +3,18 @@ import { useParams } from 'react-router-dom';
 import { fetchChallenges, submitChallengeFlag } from '../api/challenges';
 import './ProblemDetail.css';
 
+// ✅ [Story] ~ [Objective]/[Hint] 전까지만 뽑아오는 함수
+const extractStory = (description = '') => {
+  const text = String(description || '');
+
+  // [Story] 내용만: [Objective]나 [Hint]가 나오기 전까지
+  const match = text.match(/\[Story\]([\s\S]*?)(\[Objective\]|\[Hint\]|$)/);
+  if (match && match[1]) return match[1].trim();
+
+  // 혹시 형식이 다르면 그냥 전체 출력(안 깨지게)
+  return text.trim();
+};
+
 const ProblemDetail = () => {
   const { id } = useParams();
 
@@ -17,10 +29,9 @@ const ProblemDetail = () => {
         setLoading(true);
         setResult('');
 
-        // 현재 백엔드는 목록 API만 확실하니까: 목록에서 id로 찾아서 상세처럼 보여주기
+        // ✅ 상세 API 없으니 목록에서 찾아서 상세처럼 표시
         const list = await fetchChallenges();
         const found = list.find((c) => String(c.id) === String(id));
-
         setProblem(found || null);
       } catch (e) {
         setProblem(null);
@@ -36,42 +47,31 @@ const ProblemDetail = () => {
 
     try {
       setResult('');
-
       const res = await submitChallengeFlag(id, flag);
 
-      // 백엔드 응답 형태에 맞춰 최대한 안전하게 처리
       const message = res?.message ?? (res?.success ? 'Correct!' : 'Wrong!');
       setResult(message);
 
-      if (res?.success) {
-        setFlag('');
-      }
+      if (res?.success) setFlag('');
     } catch (e) {
-      // 로그인 필요(authRequired)면 보통 401/403
       const status = e?.response?.status;
       if (status === 401 || status === 403) {
         setResult('로그인이 필요합니다. 로그인 후 다시 제출해 주세요.');
         return;
       }
-
       setResult(e?.response?.data?.message || '제출 중 오류가 발생했어요.');
     }
   };
 
   const getDifficultyBadgeClass = (difficulty) => {
     const d = String(difficulty || '').toLowerCase();
-
-    switch (d) {
-      case 'easy':
-        return 'badge-easy';
-      case 'medium':
-        return 'badge-medium';
-      case 'hard':
-        return 'badge-hard';
-      default:
-        return '';
-    }
+    if (d === 'easy') return 'badge-easy';
+    if (d === 'medium') return 'badge-medium';
+    if (d === 'hard') return 'badge-hard';
+    return '';
   };
+
+  const isCorrect = String(result).toLowerCase().includes('correct') || String(result).toLowerCase().includes('success');
 
   if (loading) {
     return (
@@ -100,7 +100,6 @@ const ProblemDetail = () => {
         <div className="problem-detail-header">
           <div className="problem-title-row">
             <h1 className="problem-detail-title">{problem.title}</h1>
-
             {problem.difficulty && (
               <span className={`difficulty-badge ${getDifficultyBadgeClass(problem.difficulty)}`}>
                 {problem.difficulty}
@@ -110,10 +109,11 @@ const ProblemDetail = () => {
         </div>
 
         <div className="problem-section">
-          <h2 className="section-title">Description</h2>
+          <h2 className="section-title">Story</h2>
+
+          {/* ✅ 여기서 Story만 출력 */}
           <p className="problem-description-text">
-            {/* mock의 fullDescription 대신, 백엔드 meta.description 사용 */}
-            {problem.description || 'No description.'}
+            {extractStory(problem.description)}
           </p>
         </div>
 
@@ -135,11 +135,7 @@ const ProblemDetail = () => {
           </form>
 
           {result && (
-            <div
-              className={`result-message ${
-                String(result).toLowerCase().includes('correct') ? 'result-success' : 'result-error'
-              }`}
-            >
+            <div className={`result-message ${isCorrect ? 'result-success' : 'result-error'}`}>
               {result}
             </div>
           )}
