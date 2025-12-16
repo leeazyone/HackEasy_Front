@@ -3,16 +3,31 @@ import { useParams } from 'react-router-dom';
 import { fetchChallenges, submitChallengeFlag } from '../api/challenges';
 import './ProblemDetail.css';
 
-// ✅ [Story] ~ [Objective]/[Hint] 전까지만 뽑아오는 함수
-const extractStory = (description = '') => {
+// ✅ description을 섹션별로 파싱: Story / Objective / Hint
+const parseSections = (description = '') => {
   const text = String(description || '');
 
-  // [Story] 내용만: [Objective]나 [Hint]가 나오기 전까지
-  const match = text.match(/\[Story\]([\s\S]*?)(\[Objective\]|\[Hint\]|$)/);
-  if (match && match[1]) return match[1].trim();
+  const get = (label) => {
+    const re = new RegExp(`\\[${label}\\]([\\s\\S]*?)(\\[Story\\]|\\[Objective\\]|\\[Hint\\]|$)`, 'g');
+    // 위 regex는 다음 섹션 시작까지 잡는 용도인데, 현재 label 기준으로는
+    // 매칭이 꼬일 수 있어, label별로 확실히 분리하는 방식으로 처리
+    return null;
+  };
 
-  // 혹시 형식이 다르면 그냥 전체 출력(안 깨지게)
-  return text.trim();
+  const storyMatch = text.match(/\[Story\]([\s\S]*?)(\[Objective\]|\[Hint\]|$)/);
+  const objMatch = text.match(/\[Objective\]([\s\S]*?)(\[Hint\]|$)/);
+  const hintMatch = text.match(/\[Hint\]([\s\S]*?)($)/);
+
+  const story = storyMatch?.[1]?.trim() || '';
+  const objective = objMatch?.[1]?.trim() || '';
+  const hint = hintMatch?.[1]?.trim() || '';
+
+  // 혹시 포맷이 달라서 다 비면, 그냥 전체를 story에 넣어 깨지지 않게
+  if (!story && !objective && !hint) {
+    return { story: text.trim(), objective: '', hint: '' };
+  }
+
+  return { story, objective, hint };
 };
 
 const ProblemDetail = () => {
@@ -29,7 +44,6 @@ const ProblemDetail = () => {
         setLoading(true);
         setResult('');
 
-        // ✅ 상세 API 없으니 목록에서 찾아서 상세처럼 표시
         const list = await fetchChallenges();
         const found = list.find((c) => String(c.id) === String(id));
         setProblem(found || null);
@@ -71,7 +85,9 @@ const ProblemDetail = () => {
     return '';
   };
 
-  const isCorrect = String(result).toLowerCase().includes('correct') || String(result).toLowerCase().includes('success');
+  const isCorrect =
+    String(result).toLowerCase().includes('correct') ||
+    String(result).toLowerCase().includes('success');
 
   if (loading) {
     return (
@@ -94,6 +110,8 @@ const ProblemDetail = () => {
     );
   }
 
+  const { story, objective, hint } = parseSections(problem.description);
+
   return (
     <div className="problem-detail-page">
       <main className="problem-detail-container">
@@ -108,13 +126,20 @@ const ProblemDetail = () => {
           </div>
         </div>
 
+        {/* ✅ 상세에서는 전체 섹션 다 노출 */}
         <div className="problem-section">
           <h2 className="section-title">Story</h2>
+          <p className="problem-description-text">{story || 'No story.'}</p>
+        </div>
 
-          {/* ✅ 여기서 Story만 출력 */}
-          <p className="problem-description-text">
-            {extractStory(problem.description)}
-          </p>
+        <div className="problem-section">
+          <h2 className="section-title">Objective</h2>
+          <p className="problem-description-text">{objective || 'No objective.'}</p>
+        </div>
+
+        <div className="problem-section">
+          <h2 className="section-title">Hint</h2>
+          <p className="problem-description-text">{hint || 'No hint.'}</p>
         </div>
 
         <div className="problem-section">
