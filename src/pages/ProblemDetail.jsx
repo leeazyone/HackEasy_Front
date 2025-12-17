@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchChallenges, submitChallengeFlag } from '../api/challenges';
 import './ProblemDetail.css';
@@ -26,6 +26,14 @@ const ProblemDetail = () => {
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // ✅ Story만 먼저 보여주고, 나머지는 버튼으로 펼치기
+  const [showObjective, setShowObjective] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+
+  // ✅ 힌트는 일정 시간 지나야 열 수 있게(난이도/몰입 유지용)
+  const HINT_DELAY_MS = 60 * 1000; // 60초 (원하면 30초, 120초 등으로 바꾸면 됨)
+  const [hintUnlocked, setHintUnlocked] = useState(false);
+
   useEffect(() => {
     (async () => {
       try {
@@ -35,6 +43,11 @@ const ProblemDetail = () => {
         const list = await fetchChallenges();
         const found = list.find((c) => String(c.id) === String(id));
         setProblem(found || null);
+
+        // 문제 이동할 때 펼침 상태 초기화
+        setShowObjective(false);
+        setShowHint(false);
+        setHintUnlocked(false);
       } catch (e) {
         setProblem(null);
         setResult(e?.response?.data?.message || '문제 정보를 불러오지 못했어요.');
@@ -43,6 +56,19 @@ const ProblemDetail = () => {
       }
     })();
   }, [id]);
+
+  // ✅ 힌트 지연 해제 타이머
+  useEffect(() => {
+    if (!problem) return;
+
+    // 힌트 자체가 없으면 굳이 unlock할 필요 없음
+    const parsed = parseSections(problem.description);
+    const hint = (problem.hint ?? parsed.hint ?? '').trim();
+    if (!hint) return;
+
+    const t = setTimeout(() => setHintUnlocked(true), HINT_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [problem]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,6 +139,17 @@ const ProblemDetail = () => {
     problem.targetUrl ||
     (problem.id ? `https://targets.hackeasy.store/${problem.id}` : '');
 
+  // ✅ 버튼 문구
+  const objectiveBtnText = showObjective ? 'Objective 숨기기' : 'Objective 보기';
+  const hintBtnText = showHint ? 'Hint 숨기기' : 'Hint 보기';
+
+  // ✅ 힌트 잠금 상태 안내 문구 (남은 시간 표시까지 하고 싶으면 추가 가능)
+  const hintLockedText = useMemo(() => {
+    if (!hint) return '';
+    if (hintUnlocked) return '';
+    return '힌트는 잠시 후 열 수 있어요.';
+  }, [hint, hintUnlocked]);
+
   return (
     <div className="problem-detail-page">
       <main className="problem-detail-container">
@@ -131,7 +168,7 @@ const ProblemDetail = () => {
           </div>
         </div>
 
-        {/* Story */}
+        {/* ✅ Story만 기본 노출 */}
         <div className="problem-section">
           <h2 className="section-title">Story</h2>
           <p className="problem-description-text">
@@ -139,20 +176,65 @@ const ProblemDetail = () => {
           </p>
         </div>
 
-        {/* Objective */}
+        {/* ✅ Objective/Hint는 “나중에” 펼치기 */}
         <div className="problem-section">
-          <h2 className="section-title">Objective</h2>
-          <p className="problem-description-text">
-            {objective || 'No objective.'}
-          </p>
-        </div>
+          <h2 className="section-title">지원 정보</h2>
 
-        {/* Hint */}
-        <div className="problem-section">
-          <h2 className="section-title">Hint</h2>
-          <p className="problem-description-text">
-            {hint || 'No hint.'}
-          </p>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            {/* Objective 토글 */}
+            {objective ? (
+              <button
+                type="button"
+                className="problem-button"
+                onClick={() => setShowObjective((v) => !v)}
+              >
+                {objectiveBtnText}
+              </button>
+            ) : (
+              <button type="button" className="problem-button" disabled>
+                Objective 없음
+              </button>
+            )}
+
+            {/* Hint 토글(지연 해제 후 활성화) */}
+            {hint ? (
+              <button
+                type="button"
+                className="problem-button"
+                onClick={() => setShowHint((v) => !v)}
+                disabled={!hintUnlocked}
+                title={!hintUnlocked ? '잠시 후 열 수 있어요.' : ''}
+              >
+                {hintBtnText}
+              </button>
+            ) : (
+              <button type="button" className="problem-button" disabled>
+                Hint 없음
+              </button>
+            )}
+          </div>
+
+          {/* 잠금 안내 */}
+          {hintLockedText && (
+            <p className="problem-description-text" style={{ marginTop: '10px', opacity: 0.75 }}>
+              {hintLockedText}
+            </p>
+          )}
+
+          {/* 펼침 영역 */}
+          {showObjective && objective && (
+            <div style={{ marginTop: '14px' }}>
+              <h3 className="section-title" style={{ fontSize: '1rem' }}>Objective</h3>
+              <p className="problem-description-text">{objective}</p>
+            </div>
+          )}
+
+          {showHint && hintUnlocked && hint && (
+            <div style={{ marginTop: '14px' }}>
+              <h3 className="section-title" style={{ fontSize: '1rem' }}>Hint</h3>
+              <p className="problem-description-text">{hint}</p>
+            </div>
+          )}
         </div>
 
         {/* ✅ 외부 문제 사이트 링크 */}
