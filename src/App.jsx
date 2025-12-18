@@ -20,22 +20,29 @@ function PrivateRoute({ user, loading, children }) {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [stats, setStats] = useState({ solvedCount: 0, totalScore: 0 });
   const [loadingUser, setLoadingUser] = useState(true);
 
+  const refreshMe = async () => {
+    const data = await getMe(); // { user, stats } 또는 null
+    if (data?.user) {
+      setUser(data.user);
+      setStats(data.stats || { solvedCount: 0, totalScore: 0 });
+    } else {
+      setUser(null);
+      setStats({ solvedCount: 0, totalScore: 0 });
+    }
+  };
+
   useEffect(() => {
-    const fetchMe = async () => {
+    (async () => {
       try {
-        const data = await getMe();   // { user } 또는 null
-        if (data?.user) setUser(data.user);
-        else setUser(null);
-      } catch (err) {
-        console.error(err);
-        setUser(null);
+        await refreshMe();
       } finally {
         setLoadingUser(false);
       }
-    };
-    fetchMe();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogout = async () => {
@@ -45,6 +52,7 @@ function App() {
       console.error(err);
     } finally {
       setUser(null);
+      setStats({ solvedCount: 0, totalScore: 0 });
     }
   };
 
@@ -55,11 +63,13 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/problems" element={<Problems />} />
-        <Route path="/problems/:id" element={<ProblemDetail />} />
+
+        {/* ✅ 정답 제출 성공하면 refreshMe()로 stats 갱신 */}
+        <Route path="/problems/:id" element={<ProblemDetail onSolved={refreshMe} />} />
 
         <Route
           path="/login"
-          element={<Login onLoginSuccess={setUser} />}
+          element={<Login onLoginSuccess={refreshMe} />}
         />
         <Route path="/signup" element={<Signup />} />
 
@@ -67,7 +77,7 @@ function App() {
           path="/mypage"
           element={
             <PrivateRoute user={user} loading={loadingUser}>
-              <MyPage user={user} />
+              <MyPage user={user} stats={stats} />
             </PrivateRoute>
           }
         />

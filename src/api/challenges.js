@@ -1,10 +1,5 @@
 // src/api/challenges.js
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL, // ✅ https://api.hackeasy.store
-  withCredentials: true,                      // ✅ 세션/쿠키 필요하면 유지
-});
+import { api } from './client';
 
 export const fetchChallenges = async () => {
   const res = await api.get('/api/challenges');

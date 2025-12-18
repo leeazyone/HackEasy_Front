@@ -1,7 +1,7 @@
 // Front/src/pages/Login.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login, getMe } from '../api/auth';
+import { login } from '../api/auth';
 import './Login.css';
 
 const Login = ({ onLoginSuccess }) => {
@@ -21,26 +21,20 @@ const Login = ({ onLoginSuccess }) => {
       const data = await login(userId, password);
 
       if (data?.user) {
-        // 2) 혹시 백엔드에서 /auth/login에 user 안 주면, /auth/me 다시 호출
-        let user = data.user;
-        if (!user) {
-          const me = await getMe();
-          user = me.user;
+        // 2) App.jsx에서 /auth/me 다시 호출해서 user+stats 갱신
+        if (typeof onLoginSuccess === 'function') {
+          await onLoginSuccess(); // ✅ 인자 없이 호출
         }
 
-        // 3) App.jsx 쪽 user 상태 업데이트
-        if (onLoginSuccess) {
-          onLoginSuccess(user);
-        }
-
-        setMessage(`안녕하세요, ${user.nickname || user.user_id}님!`);
-        navigate('/mypage'); // 로그인 후 마이페이지로
-      } else {
-        setError(data?.msg || '아이디 또는 비밀번호가 올바르지 않습니다.');
+        setMessage(`안녕하세요, ${data.user.nickname || data.user.user_id}님!`);
+        navigate('/mypage');
+        return;
       }
+
+      setError(data?.msg || '아이디 또는 비밀번호가 올바르지 않습니다.');
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.msg || '서버 오류가 발생했습니다.');
+      setError(err?.message || err?.response?.data?.msg || '서버 오류가 발생했습니다.');
     }
   };
 
