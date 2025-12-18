@@ -97,3 +97,42 @@
 .loading-text {
   color: #9ca3af;
 }
+
+/* 해설 영역 */
+.explanation-section {
+  border-top: 1px dashed #e5e7eb;
+  margin-top: 24px;
+  padding-top: 20px;
+}
+
+.explain-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.explain-tab {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.explain-tab.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.explain-body {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+/* 소제목 */
+.section-title.small {
+  font-size: 0.95rem;
+}

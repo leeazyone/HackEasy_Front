@@ -26,9 +26,11 @@ const ProblemDetail = () => {
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // ✅ Story만 기본, Objective/Hint는 버튼 토글
   const [showObjective, setShowObjective] = useState(false);
   const [showHint, setShowHint] = useState(false);
+
+  // ✅ 해설 탭 상태
+  const [explainTab, setExplainTab] = useState('concept'); // concept | solution
 
   useEffect(() => {
     let alive = true;
@@ -49,7 +51,7 @@ const ProblemDetail = () => {
       } catch (e) {
         if (!alive) return;
         setProblem(null);
-        setResult(e?.response?.data?.message || '문제 정보를 불러오지 못했어요.');
+        setResult('문제 정보를 불러오지 못했어요.');
       } finally {
         if (!alive) return;
         setLoading(false);
@@ -71,14 +73,15 @@ const ProblemDetail = () => {
       const message = res?.message ?? (res?.ok ? 'Correct!' : 'Wrong!');
       setResult(message);
 
-      if (res?.ok) setFlag('');
-    } catch (e) {
-      const status = e?.response?.status;
-      if (status === 401 || status === 403) {
-        setResult('로그인이 필요합니다. 로그인 후 다시 제출해 주세요.');
-        return;
+      // ✅ 맞힌 경우: 문제 다시 불러오기 (explanation 포함)
+      if (res?.ok) {
+        const list = await fetchChallenges();
+        const updated = list.find((c) => String(c.id) === String(id));
+        setProblem(updated || problem);
+        setFlag('');
       }
-      setResult(e?.response?.data?.message || '제출 중 오류가 발생했어요.');
+    } catch (e) {
+      setResult('제출 중 오류가 발생했어요.');
     }
   };
 
@@ -94,36 +97,25 @@ const ProblemDetail = () => {
     String(result).toLowerCase().includes('correct') ||
     String(result).toLowerCase().includes('success');
 
-  // ✅ 여기서부터는 “렌더용 값 계산”만 (hook 없음)
   const parsed = parseSections(problem?.description);
   const story = (problem?.story ?? parsed.story ?? '').trim();
   const objective = (problem?.objective ?? parsed.objective ?? '').trim();
   const hint = (problem?.hint ?? parsed.hint ?? '').trim();
 
+  const explanation = problem?.explanation;
+  const hasExplanation =
+    isCorrect && explanation && (explanation.concept || explanation.solution);
+
   const targetUrl =
     problem?.targetUrl ||
     (problem?.id ? `https://targets.hackeasy.store/${problem.id}` : '');
 
-  // ✅ 로딩/에러 화면
   if (loading) {
-    return (
-      <div className="problem-detail-page">
-        <div className="problem-detail-container">
-          <p className="loading-text">Loading problem...</p>
-        </div>
-      </div>
-    );
+    return <p className="loading-text">Loading problem...</p>;
   }
 
   if (!problem) {
-    return (
-      <div className="problem-detail-page">
-        <div className="problem-detail-container">
-          <p className="loading-text">Problem not found.</p>
-          {result && <p className="loading-text">{result}</p>}
-        </div>
-      </div>
-    );
+    return <p className="loading-text">Problem not found.</p>;
   }
 
   return (
@@ -144,23 +136,22 @@ const ProblemDetail = () => {
           </div>
         </div>
 
-        {/* ✅ Story만 기본 노출 */}
+        {/* Story */}
         <div className="problem-section">
           <h2 className="section-title">Story</h2>
           <p className="problem-description-text">{story || 'No story.'}</p>
         </div>
 
-        {/* ✅ Objective/Hint는 버튼으로 토글 */}
+        {/* Objective / Hint */}
         <div className="problem-section">
           <h2 className="section-title">추가 정보</h2>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <div className="toggle-row">
             <button
               type="button"
               className="problem-button"
               onClick={() => setShowObjective((v) => !v)}
               disabled={!objective}
-              title={!objective ? 'Objective가 없습니다.' : ''}
             >
               {showObjective ? 'Objective 숨기기' : 'Objective 보기'}
             </button>
@@ -170,32 +161,27 @@ const ProblemDetail = () => {
               className="problem-button"
               onClick={() => setShowHint((v) => !v)}
               disabled={!hint}
-              title={!hint ? 'Hint가 없습니다.' : ''}
             >
               {showHint ? 'Hint 숨기기' : 'Hint 보기'}
             </button>
           </div>
 
-          {showObjective && objective && (
-            <div style={{ marginTop: '14px' }}>
-              <h3 className="section-title" style={{ fontSize: '1rem' }}>
-                Objective
-              </h3>
+          {showObjective && (
+            <div className="sub-section">
+              <h3 className="section-title small">Objective</h3>
               <p className="problem-description-text">{objective}</p>
             </div>
           )}
 
-          {showHint && hint && (
-            <div style={{ marginTop: '14px' }}>
-              <h3 className="section-title" style={{ fontSize: '1rem' }}>
-                Hint
-              </h3>
+          {showHint && (
+            <div className="sub-section">
+              <h3 className="section-title small">Hint</h3>
               <p className="problem-description-text">{hint}</p>
             </div>
           )}
         </div>
 
-        {/* ✅ 외부 문제 사이트 링크 */}
+        {/* Target */}
         {targetUrl && (
           <div className="problem-section">
             <h2 className="section-title">문제 페이지</h2>
@@ -222,7 +208,6 @@ const ProblemDetail = () => {
               placeholder="HE{enter_your_flag_here}"
               className="flag-input"
             />
-
             <button type="submit" className="submit-button">
               제출
             </button>
@@ -238,6 +223,45 @@ const ProblemDetail = () => {
             </div>
           )}
         </div>
+
+        {/* ✅ 해설 영역 (정답 맞힌 사람만) */}
+        {hasExplanation && (
+          <div className="problem-section explanation-section">
+            <h2 className="section-title">해설</h2>
+
+            <div className="explain-tabs">
+              <button
+                className={`explain-tab ${
+                  explainTab === 'concept' ? 'active' : ''
+                }`}
+                onClick={() => setExplainTab('concept')}
+              >
+                개념 해설
+              </button>
+              <button
+                className={`explain-tab ${
+                  explainTab === 'solution' ? 'active' : ''
+                }`}
+                onClick={() => setExplainTab('solution')}
+              >
+                풀이 해설
+              </button>
+            </div>
+
+            <div className="explain-body">
+              {explainTab === 'concept' && (
+                <pre className="problem-description-text">
+                  {explanation.concept}
+                </pre>
+              )}
+              {explainTab === 'solution' && (
+                <pre className="problem-description-text">
+                  {explanation.solution}
+                </pre>
+              )}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
