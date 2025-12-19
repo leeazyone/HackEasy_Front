@@ -16,6 +16,7 @@
 .problem-title-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
   flex-wrap: wrap;
@@ -24,209 +25,256 @@
 .problem-detail-title {
   font-size: 2.25rem;
   font-weight: 700;
-  color: #d1d5db;
+  color: #e5e7eb;
+  display: flex;
+  align-items: center;
+}
+
+/* ✅ detail 체크 표시 */
+.solved-check {
+  margin-left: 10px;
+  color: #00ff88;
+  font-weight: 800;
+  font-size: 1.1rem;
 }
 
 .difficulty-badge {
   padding: 0.25rem 0.75rem;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
-  font-weight: 500;
-  color: #ffffff;
+  font-weight: 600;
+  color: #0b0b0b;
 }
 
 .badge-easy {
-  background-color: #22c55e;
+  background-color: #00ff88;
 }
-
 .badge-medium {
   background-color: #f59e0b;
 }
-
 .badge-hard {
   background-color: #ef4444;
+  color: #fff;
 }
 
+/* ✅ 기본 섹션 카드 */
 .problem-section {
   background-color: #0d0d0d;
-  border: 1px solid #2a2a2a;
-  border-radius: 0.375rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
 }
 
 .section-title {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #d1d5db;
+  font-weight: 700;
+  color: #e5e7eb;
   margin-bottom: 1rem;
 }
 
-.problem-description-text {
-  color: #9ca3af;
-  white-space: pre-line;
+.section-title.small {
+  font-size: 1.05rem;
+  margin-bottom: 0.75rem;
 }
 
+.problem-description-text {
+  color: #cbd5e1;
+  white-space: pre-line;
+  line-height: 1.65;
+}
+
+/* ✅ Objective / Hint 토글 영역 */
+.toggle-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.sub-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ✅ 버튼 공통 (Objective/Hint/문제 풀러가기) */
+.problem-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: all 0.18s ease;
+  text-decoration: none;
+}
+
+.problem-button:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.problem-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ✅ 플래그 폼 */
 .flag-form {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .flag-input {
-  width: 100%;
-  background-color: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  color: #d1d5db;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
+  flex: 1;
+  min-width: 220px;
+
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e5e7eb;
+
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  outline: none;
 }
 
+.flag-input:focus {
+  border-color: rgba(0, 255, 136, 0.55);
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.12);
+}
+
+/* ✅ 제출 버튼 */
 .submit-button {
-  background-color: #22c55e;
-  color: #ffffff;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.375rem;
-  border: none;
+  background: linear-gradient(135deg, rgba(0,255,136,0.85), rgba(0,180,120,0.85));
+  color: #07110b;
+
+  padding: 0.6rem 1.1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0,255,136,0.35);
+
+  font-weight: 800;
   cursor: pointer;
-  align-self: flex-start;
+  transition: transform 0.12s ease, filter 0.12s ease;
 }
 
 .submit-button:hover {
-  background-color: #16a34a;
+  filter: brightness(1.05);
+  transform: translateY(-1px);
 }
 
+/* ✅ 결과 메시지 */
 .result-message {
   margin-top: 1rem;
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  border: 1px solid;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .result-success {
-  background-color: rgba(34, 197, 94, 0.1);
-  border-color: #22c55e;
-  color: #22c55e;
+  background: rgba(0, 255, 136, 0.08);
+  border-color: rgba(0, 255, 136, 0.35);
+  color: #00ff88;
 }
 
 .result-error {
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #ff6b6b;
 }
 
 .loading-text {
   color: #9ca3af;
 }
 
-/* solved check */
 /* =========================
-   Explanation Section (Dark)
+   ✅ Explanation Section (Dark)
    ========================= */
 
-.explanation-section {
-  margin-top: 2.5rem;
-  padding: 1.5rem 1.75rem;
-  border-radius: 14px;
-
+/* explanation-section은 problem-section이랑 같이 붙어서 오니까
+   (className="problem-section explanation-section")
+   여기서 더 “보상 카드” 느낌만 추가 */
+.problem-section.explanation-section {
   background: linear-gradient(
     180deg,
-    rgba(20, 20, 20, 0.9),
-    rgba(10, 10, 10, 0.95)
+    rgba(20, 20, 20, 0.92),
+    rgba(10, 10, 10, 0.96)
   );
-
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.6),
+    0 14px 40px rgba(0, 0, 0, 0.65),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-/* 제목 */
-.explanation-section .section-title {
-  color: #eaeaea;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  letter-spacing: 0.3px;
-}
-
-/* =========================
-   Tabs
-   ========================= */
-
+/* 탭 */
 .explain-tabs {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .explain-tab {
   padding: 0.45rem 1rem;
   border-radius: 999px;
 
-  background: rgba(255, 255, 255, 0.05);
-  color: #bdbdbd;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.10);
 
   font-size: 0.85rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .explain-tab:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.10);
   color: #ffffff;
 }
 
 .explain-tab.active {
   background: linear-gradient(
     135deg,
-    rgba(0, 255, 136, 0.25),
-    rgba(0, 180, 120, 0.35)
+    rgba(0, 255, 136, 0.22),
+    rgba(0, 180, 120, 0.34)
   );
   color: #00ff88;
-  border-color: rgba(0, 255, 136, 0.6);
-  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.25);
+  border-color: rgba(0, 255, 136, 0.55);
+  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.18);
 }
 
-/* =========================
-   Explanation Body
-   ========================= */
-
+/* 본문(pre) */
 .explain-body {
   margin-top: 0.75rem;
 }
 
-/* pre 태그 다크 대응 */
 .explain-body pre {
   margin: 0;
   padding: 1.25rem 1.5rem;
 
   background: rgba(0, 0, 0, 0.45);
-  color: #dcdcdc;
+  color: #d6dde6;
 
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9rem;
   line-height: 1.65;
 
   white-space: pre-wrap;
   word-break: break-word;
-}
-
-/* 강조 문장 느낌 */
-.explain-body pre strong {
-  color: #00ff88;
-}
-
-/* =========================
-   Solved Check (Detail)
-   ========================= */
-
-.problem-detail-title .solved-check {
-  margin-left: 10px;
-  color: #00ff88;
-  font-weight: 800;
-  font-size: 1.1rem;
 }
