@@ -120,18 +120,113 @@
 }
 
 /* solved check */
-.solved-check {
-  margin-left: 10px;
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.15);
+/* =========================
+   Explanation Section (Dark)
+   ========================= */
+
+.explanation-section {
+  margin-top: 2.5rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: 14px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(20, 20, 20, 0.9),
+    rgba(10, 10, 10, 0.95)
+  );
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-.problem-card.solved {
-  opacity: 0.92;
+/* 제목 */
+.explanation-section .section-title {
+  color: #eaeaea;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: 0.3px;
+}
+
+/* =========================
+   Tabs
+   ========================= */
+
+.explain-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.explain-tab {
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.05);
+  color: #bdbdbd;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.explain-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.explain-tab.active {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 136, 0.25),
+    rgba(0, 180, 120, 0.35)
+  );
+  color: #00ff88;
+  border-color: rgba(0, 255, 136, 0.6);
+  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.25);
+}
+
+/* =========================
+   Explanation Body
+   ========================= */
+
+.explain-body {
+  margin-top: 0.75rem;
+}
+
+/* pre 태그 다크 대응 */
+.explain-body pre {
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+
+  background: rgba(0, 0, 0, 0.45);
+  color: #dcdcdc;
+
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  line-height: 1.65;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 강조 문장 느낌 */
+.explain-body pre strong {
+  color: #00ff88;
+}
+
+/* =========================
+   Solved Check (Detail)
+   ========================= */
+
+.problem-detail-title .solved-check {
+  margin-left: 10px;
+  color: #00ff88;
+  font-weight: 800;
+  font-size: 1.1rem;
 }
