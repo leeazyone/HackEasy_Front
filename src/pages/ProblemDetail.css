@@ -314,3 +314,56 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* =========================
+   Active / Primary Button
+   ========================= */
+
+/* 활성 상태 (개념 해설, 제출 등) */
+.explain-tab.active,
+.submit-button,
+.problem-button.primary {
+  background: linear-gradient(
+    135deg,
+    #00ff88,
+    #00cc6a
+  );
+  color: #0b0b0b;
+
+  border: none;
+  box-shadow:
+    0 6px 20px rgba(0, 255, 136, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+
+  font-weight: 900;
+}
+
+/* hover 시 살짝 빛나게 */
+.explain-tab.active:hover,
+.submit-button:hover,
+.problem-button.primary:hover {
+  filter: brightness(1.05);
+  box-shadow:
+    0 8px 26px rgba(0, 255, 136, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* =========================
+   Inactive / Secondary Button
+   ========================= */
+
+.explain-tab:not(.active),
+.problem-button,
+.submit-button.secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+.explain-tab:not(.active):hover,
+.problem-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
