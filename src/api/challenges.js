@@ -6,6 +6,11 @@ export const fetchChallenges = async () => {
   return res.data?.challenges || [];
 };
 
+export const fetchChallengeDetail = async (id) => {
+  const res = await api.get(`/api/challenges/${id}`);
+  return res.data?.challenge || null;
+};
+
 export const submitChallengeFlag = async (id, flag) => {
   const res = await api.post(`/api/challenges/${id}/submit`, { flag });
   return res.data;

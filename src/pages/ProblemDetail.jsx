@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/ProblemDetail.jsx
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchChallenges, submitChallengeFlag } from '../api/challenges';
+import { fetchChallengeDetail, submitChallengeFlag } from '../api/challenges';
 import './ProblemDetail.css';
 
 const parseSections = (description = '') => {
@@ -21,15 +22,32 @@ const ProblemDetail = ({ onSolved }) => {
   const { id } = useParams();
 
   const [problem, setProblem] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const [flag, setFlag] = useState('');
   const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(true);
 
   const [showObjective, setShowObjective] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
   const [explainTab, setExplainTab] = useState('concept'); // concept | solution
+
+  // ✅ solved 상태 + explanation은 별도 state로 관리
   const [isSolved, setIsSolved] = useState(false);
+  const [explanation, setExplanation] = useState(null);
+
+  const loadDetail = async () => {
+    const detail = await fetchChallengeDetail(id);
+    setProblem(detail || null);
+
+    if (detail?.solved) {
+      setIsSolved(true);
+      setExplanation(detail.explanation || null);
+    } else {
+      setIsSolved(false);
+      setExplanation(null);
+    }
+  };
 
   useEffect(() => {
     let alive = true;
@@ -38,17 +56,13 @@ const ProblemDetail = ({ onSolved }) => {
       try {
         setLoading(true);
         setResult('');
-
-        const list = await fetchChallenges();
-        const found = list.find((c) => String(c.id) === String(id));
-
-        if (!alive) return;
-
-        setProblem(found || null);
+        setFlag('');
         setShowObjective(false);
         setShowHint(false);
-        setIsSolved(false);
         setExplainTab('concept');
+
+        await loadDetail();
+        if (!alive) return;
       } catch (e) {
         if (!alive) return;
         setProblem(null);
@@ -62,6 +76,7 @@ const ProblemDetail = ({ onSolved }) => {
     return () => {
       alive = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleSubmit = async (e) => {
@@ -76,18 +91,20 @@ const ProblemDetail = ({ onSolved }) => {
 
       if (res?.ok) {
         setIsSolved(true);
+        setFlag('');
 
-        // ✅ 정답 처리되면 마이페이지 stats 갱신
+        // ✅ submit 응답에 explanation이 오면 즉시 표시
+        if (res.explanation) {
+          setExplanation(res.explanation);
+        } else {
+          // ✅ 혹시 submit에서 explanation 안 주면 detail을 다시 받아오기
+          await loadDetail();
+        }
+
+        // ✅ 마이페이지 stats 갱신 (App의 refreshMe 연결돼 있으면)
         if (typeof onSolved === 'function') {
           await onSolved();
         }
-
-        // (선택) 문제 다시 로드 (현재도 explanation 포함으로 내려오면 반영됨)
-        const list = await fetchChallenges();
-        const updated = list.find((c) => String(c.id) === String(id));
-        setProblem(updated || problem);
-
-        setFlag('');
       }
     } catch (e) {
       setResult('제출 중 오류가 발생했어요.');
@@ -102,22 +119,21 @@ const ProblemDetail = ({ onSolved }) => {
     return '';
   };
 
-  const isCorrect =
-    String(result).toLowerCase().includes('correct') ||
-    String(result).toLowerCase().includes('success');
-
   const parsed = parseSections(problem?.description);
   const story = (problem?.story ?? parsed.story ?? '').trim();
   const objective = (problem?.objective ?? parsed.objective ?? '').trim();
   const hint = (problem?.hint ?? parsed.hint ?? '').trim();
 
-  const explanation = problem?.explanation;
   const hasExplanation =
     isSolved && explanation && (explanation.concept || explanation.solution);
 
   const targetUrl =
     problem?.targetUrl ||
     (problem?.id ? `https://targets.hackeasy.store/${problem.id}` : '');
+
+  const isCorrect =
+    String(result).toLowerCase().includes('correct') ||
+    String(result).toLowerCase().includes('success');
 
   if (loading) return <p className="loading-text">Loading problem...</p>;
   if (!problem) return <p className="loading-text">Problem not found.</p>;
@@ -127,7 +143,11 @@ const ProblemDetail = ({ onSolved }) => {
       <main className="problem-detail-container">
         <div className="problem-detail-header">
           <div className="problem-title-row">
-            <h1 className="problem-detail-title">{problem.title}</h1>
+            <h1 className="problem-detail-title">
+              {problem.title}
+              {isSolved && <span className="solved-check" style={{ marginLeft: 10 }}>✓</span>}
+            </h1>
+
             {problem.difficulty && (
               <span className={`difficulty-badge ${getDifficultyBadgeClass(problem.difficulty)}`}>
                 {problem.difficulty}
@@ -199,9 +219,7 @@ const ProblemDetail = ({ onSolved }) => {
               placeholder="HE{enter_your_flag_here}"
               className="flag-input"
             />
-            <button type="submit" className="submit-button">
-              제출
-            </button>
+            <button type="submit" className="submit-button">제출</button>
           </form>
 
           {result && (
@@ -211,7 +229,7 @@ const ProblemDetail = ({ onSolved }) => {
           )}
         </div>
 
-        {/* ✅ 해설 영역 (정답 맞힌 사람만) */}
+        {/* ✅ 해설(풀었을 때만) */}
         {hasExplanation && (
           <div className="problem-section explanation-section">
             <h2 className="section-title">해설</h2>

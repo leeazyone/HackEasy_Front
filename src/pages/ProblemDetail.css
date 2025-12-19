@@ -118,3 +118,20 @@
 .loading-text {
   color: #9ca3af;
 }
+
+/* solved check */
+.solved-check {
+  margin-left: 10px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+.problem-card.solved {
+  opacity: 0.92;
+}
